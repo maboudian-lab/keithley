@@ -13,6 +13,6 @@ fileName = 'sensorName'
 vRangeList = ((-5,5),(-0.5,0.5))
 vStepList = (0.1,0.01)
 
-for j in range(0,3):
+for j in range(0,n):
     multiSweep(fileName + "_run" + str(j),vRangeList,vStepList)
     sleep(10)
