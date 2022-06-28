@@ -26,11 +26,14 @@ rmList = rm.list_resources()
 print(rmList)
 
 # default for usbAddr is first entry of rmList
-def keithleyIV(fileName, vMin, vMax, vStep=0.1, tInt=0.12, delay=-1, usbAddr=rmList[0]):
+def keithleyIV(fileName, vRange, vStep=0.1, tInt=0.12, delay=-1, usbAddr=rmList[0]):
     # initialize keithley object
     # visa_library defaults to pyvisa unless empty string '' is passed!
     k = Keithley2600(usbAddr,visa_library='')
     
+    vMin = vRange[0]
+    vMax = vRange[1]
+
     # voltage sweep from vmin to vmax with step size vstep
     # delay=-1 means no delay
     data = k.voltage_sweep_single_smu(
@@ -42,3 +45,12 @@ def keithleyIV(fileName, vMin, vMax, vStep=0.1, tInt=0.12, delay=-1, usbAddr=rmL
         writer.writerows(np.transpose(np.array(data)))
     
     k.reset()
+    
+def multiSweep(fileName, vRangeList, vStepList, tInt=0.12, delay=-1, usbAddr=rmList[0]):
+    j = 0
+    n = len(vRangeList)
+    
+    for j in range(0, n):
+        vRange = vRangeList[j]
+        vStep = vStepList[j]
+        keithleyIV(fileName + "_" + str(vRange[0]) + "_" + str(vRange[1]) + ".csv", vRange, vStep=vStep, tInt=tInt, delay=delay, usbAddr=usbAddr)
