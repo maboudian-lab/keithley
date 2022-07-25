@@ -27,11 +27,14 @@ dt = 0
 
 fileName = "test.csv"
 
+print("Creating CSV...")
+with open(fileName, 'w', newline='') as csvFile:
+    writer = csv.writer(csvFile)
 
+print("Writing to CSV!")
 with open(fileName, 'a', newline='') as csvFile:
     while dt <= tEnd:
-        # voltage sweep from vmin to vmax with step size vstep
-        # delay=-1 means no delay
+        # use dual-smu voltage sweep to measure current at voltage v
         sweepList = [v]
         data = k.voltage_sweep_dual_smu(
             k.smua, k.smub, sweepList, sweepList, t_int=tInt, delay=delay, pulsed=False
@@ -40,14 +43,9 @@ with open(fileName, 'a', newline='') as csvFile:
         dt = t - t0
         
         data = np.transpose(np.array(data))
-        np.insert(data,1,t)
+        data = np.insert(data,0,t,axis=1) # append time as first column
         
         writer = csv.writer(csvFile)
         writer.writerows(data)
-    
-    # print(dt)
-    # print(data)
 
 k.reset()
-
-# print(dt)
