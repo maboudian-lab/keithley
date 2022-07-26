@@ -14,38 +14,35 @@ print(rmList)
 
 usbAddr=rmList[0]
 
-k = Keithley2600(usbAddr,visa_library='')
-v = 5
-tEnd = 3
-channel = "both"
+def keithleyPotentiometric(fileName, tEnd=np.inf, v=5, tInt=0.12, usbAddr=rmList[0]):
+    
+    k = Keithley2600(usbAddr,visa_library='')
+    channel = "both"
+    
+    delay = -1
+    sweepList = [v]
 
-tInt = 0.12
-delay = -1
+    t0 = time.time()
+    dt = 0
 
-t0 = time.time()
-dt = 0
-
-fileName = "test.csv"
-
-print("Creating CSV...")
-with open(fileName, 'w', newline='') as csvFile:
-    writer = csv.writer(csvFile)
-
-print("Writing to CSV!")
-with open(fileName, 'a', newline='') as csvFile:
-    while dt <= tEnd:
-        # use dual-smu voltage sweep to measure current at voltage v
-        sweepList = [v]
-        data = k.voltage_sweep_dual_smu(
-            k.smua, k.smub, sweepList, sweepList, t_int=tInt, delay=delay, pulsed=False
-        )
-        t = time.time()
-        dt = t - t0
-        
-        data = np.transpose(np.array(data))
-        data = np.insert(data,0,t,axis=1) # append time as first column
-        
+    print("Creating CSV...")
+    with open(fileName, 'w', newline='') as csvFile:
         writer = csv.writer(csvFile)
-        writer.writerows(data)
 
-k.reset()
+    print("Writing to CSV!")
+    with open(fileName, 'a', newline='') as csvFile:
+        while dt <= tEnd:
+            # use dual-smu voltage sweep to measure current at voltage v
+            data = k.voltage_sweep_dual_smu(
+                k.smua, k.smub, sweepList, sweepList, t_int=tInt, delay=delay, pulsed=False
+            )
+            t = time.time()
+            dt = t - t0
+            
+            data = np.transpose(np.array(data))
+            data = np.insert(data,0,t,axis=1) # append time as first column
+            
+            writer = csv.writer(csvFile)
+            writer.writerows(data)
+
+    k.reset()
