@@ -26,19 +26,32 @@ rmList = rm.list_resources()
 print(rmList)
 
 # default for usbAddr is first entry of rmList
-def keithleyIV(fileName, vRange, vStep=0.1, tInt=0.12, delay=-1, usbAddr=rmList[0]):
+def keithleyIV(fileName, vRange, vStep=0.1, tInt=0.12, delay=-1, usbAddr=rmList[0], channel="b"):
     # initialize keithley object
     # visa_library defaults to pyvisa unless empty string '' is passed!
     k = Keithley2600(usbAddr,visa_library='')
     
     vMin = vRange[0]
     vMax = vRange[1]
+    sweepList = np.arange(vMin,vMax+vStep,vStep)
 
     # voltage sweep from vmin to vmax with step size vstep
     # delay=-1 means no delay
-    data = k.voltage_sweep_single_smu(
-        k.smub, np.arange(vMin,vMax+vStep,vStep), t_int=tInt, delay=delay, pulsed=False
-    )
+    if channel == "b":
+        data = k.voltage_sweep_single_smu(
+            k.smub, sweepList, t_int=tInt, delay=delay, pulsed=False
+        )
+    elif channel == "a":
+        data = k.voltage_sweep_single_smu(
+            k.smua, sweepList, t_int=tInt, delay=delay, pulsed=False
+        )
+    elif channel == "both":
+        data = k.voltage_sweep_dual_smu(
+            k.smua, k.smub, sweepList, sweepList, t_int=tInt, delay=delay, pulsed=False
+        )
+    else:
+        k.reset()
+        return
     
     with open(fileName, 'w', newline='') as csvFile:
         writer = csv.writer(csvFile)
@@ -46,11 +59,12 @@ def keithleyIV(fileName, vRange, vStep=0.1, tInt=0.12, delay=-1, usbAddr=rmList[
     
     k.reset()
     
-def multiSweep(fileName, vRangeList, vStepList, tInt=0.12, delay=-1, usbAddr=rmList[0]):
+def multiSweep(fileName, vRangeList, vStepList, tInt=0.12, delay=-1, usbAddr=rmList[0], channel="b"):
     j = 0
     n = len(vRangeList)
     
     for j in range(0, n):
         vRange = vRangeList[j]
         vStep = vStepList[j]
-        keithleyIV(fileName + "_" + str(vRange[0]) + "_" + str(vRange[1]) + ".csv", vRange, vStep=vStep, tInt=tInt, delay=delay, usbAddr=usbAddr)
+        keithleyIV(fileName + "_" + str(vRange[0]) + "_" + str(vRange[1]) + ".csv",
+                   vRange, vStep=vStep, tInt=tInt, delay=delay, usbAddr=usbAddr, channel=channel)
