@@ -22,6 +22,7 @@ def keithleyPotentiometric(fileName, tEnd=np.inf, v=5, tInt=0.12, usbAddr=rmList
     delay = -1
     sweepList = [v]
 
+    tEnd = tEnd*3600 # convert tEnd from h to s
     t0 = time.time()
     dt = 0
 
